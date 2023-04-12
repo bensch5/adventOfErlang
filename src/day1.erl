@@ -1,23 +1,21 @@
 -module(day1).
--compile(export_all).
+-export([day1/1, day1_test/0]).
 
-% get_input(Filepath) ->
-%     {ok, IoDevice} = os:open(Filepath, read),
-%     IoDevice.
-
-% read_lines(IoDevice) -> 
-%     
-% read_lines({ok, Data}) -> 
+get_input(Filepath) ->
+    {ok, File} = file:read_file(Filepath),
+    unicode:characters_to_list(File).
+    
+day1(Filepath) ->
+    List = get_input(Filepath),
+    lists:max(process(List)).
 
 process([]) ->
     [];
 process(List) ->
     {Backpack, T} = backpack_parser(List),
-    BackpackVals = [lists:sum(Backpack)|process(T)],
-    lists:max(BackpackVals).
+    [lists:sum(Backpack)|process(T)].
 
-
-%% backpack_parser : Liste -> {Backpack, T}
+%% backpack_parser : Liste -> {Backpack = [Meal, Meal2, Meal3], T}
 %% 
 %% Fälle:
 %%  Ende von Backpack: {[], T}
@@ -34,23 +32,20 @@ backpack_parser(List) ->
         end
     end.
 
-    
 %% meal_parser : Liste -> {Parsed_Meal, T}
 %% quasi split bei 10
 
 meal_parser([]) ->
     {[], []};
-% return when non digit is found
-meal_parser([H|T]) when (H < 48) or (H > 57) ->
+% skip carriage return if encountered
+meal_parser([13|T]) ->
+    meal_parser(T);
+% new line found, marks the end of current meal
+meal_parser([10|T]) ->
     {[], T};
 meal_parser([H|T]) ->
     {Parsed, Rest} = meal_parser(T),
     {[H|Parsed], Rest}.
-
-
-%% [49 48 48 48 10 49]
-%% [49 48 48 48 13 10 49]
-%% 
 
 day1_test() ->
     Input = "1000
@@ -67,5 +62,5 @@ day1_test() ->
 9000
 
 10000",
-    24000 = process(Input),
+    24000 = day1(Input),
     ok.
